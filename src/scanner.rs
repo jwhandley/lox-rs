@@ -1,4 +1,4 @@
-use crate::token::{Literal, Token, TokenType};
+use crate::token::{Token, TokenType};
 
 pub struct Scanner {
     source: Vec<char>,
@@ -9,7 +9,7 @@ pub struct Scanner {
 }
 
 impl Scanner {
-    pub fn new(source: String) -> Self {
+    pub fn new(source: &str) -> Self {
         Self {
             source: source.chars().collect(),
             tokens: vec![],
@@ -25,56 +25,55 @@ impl Scanner {
             self.scan_token();
         }
 
-        let t = Token::new(TokenType::Eof, "".to_string(), None, self.line);
+        let t = Token::new(TokenType::Eof, "".to_string(), self.line);
         self.tokens.push(t);
         self.tokens.clone()
     }
 
-    fn add_token(&mut self, token_type: TokenType, value: Option<Literal>) {
+    fn add_token(&mut self, token_type: TokenType) {
         let text: String = self.source[self.start..self.current].iter().collect();
-        self.tokens
-            .push(Token::new(token_type, text, value, self.line))
+        self.tokens.push(Token::new(token_type, text, self.line))
     }
 
     fn scan_token(&mut self) {
         let c = self.advance();
         match c {
-            '(' => self.add_token(TokenType::LeftParen, None),
-            ')' => self.add_token(TokenType::RightParen, None),
-            '{' => self.add_token(TokenType::LeftBrace, None),
-            '}' => self.add_token(TokenType::RightBrace, None),
-            ',' => self.add_token(TokenType::Comma, None),
-            '.' => self.add_token(TokenType::Dot, None),
-            '-' => self.add_token(TokenType::Minus, None),
-            '+' => self.add_token(TokenType::Plus, None),
-            ';' => self.add_token(TokenType::Semicolon, None),
-            '*' => self.add_token(TokenType::Star, None),
+            '(' => self.add_token(TokenType::LeftParen),
+            ')' => self.add_token(TokenType::RightParen),
+            '{' => self.add_token(TokenType::LeftBrace),
+            '}' => self.add_token(TokenType::RightBrace),
+            ',' => self.add_token(TokenType::Comma),
+            '.' => self.add_token(TokenType::Dot),
+            '-' => self.add_token(TokenType::Minus),
+            '+' => self.add_token(TokenType::Plus),
+            ';' => self.add_token(TokenType::Semicolon),
+            '*' => self.add_token(TokenType::Star),
             '!' => {
                 if self.matches('=') {
-                    self.add_token(TokenType::BangEqual, None)
+                    self.add_token(TokenType::BangEqual)
                 } else {
-                    self.add_token(TokenType::Bang, None)
+                    self.add_token(TokenType::Bang)
                 }
             }
             '=' => {
                 if self.matches('=') {
-                    self.add_token(TokenType::EqualEqual, None)
+                    self.add_token(TokenType::EqualEqual)
                 } else {
-                    self.add_token(TokenType::Equal, None)
+                    self.add_token(TokenType::Equal)
                 }
             }
             '<' => {
                 if self.matches('=') {
-                    self.add_token(TokenType::LessEqual, None)
+                    self.add_token(TokenType::LessEqual)
                 } else {
-                    self.add_token(TokenType::Less, None)
+                    self.add_token(TokenType::Less)
                 }
             }
             '>' => {
                 if self.matches('>') {
-                    self.add_token(TokenType::GreaterEqual, None)
+                    self.add_token(TokenType::GreaterEqual)
                 } else {
-                    self.add_token(TokenType::Greater, None)
+                    self.add_token(TokenType::Greater)
                 }
             }
             '/' => {
@@ -83,7 +82,7 @@ impl Scanner {
                         self.advance();
                     }
                 } else {
-                    self.add_token(TokenType::Slash, None)
+                    self.add_token(TokenType::Slash)
                 }
             }
             '"' => self.string(),
@@ -114,7 +113,7 @@ impl Scanner {
         let value: String = self.source[self.start + 1..self.current - 1]
             .iter()
             .collect();
-        self.add_token(TokenType::String, Some(Literal::String(value)));
+        self.add_token(TokenType::String(value));
     }
 
     fn number(&mut self) {
@@ -131,7 +130,7 @@ impl Scanner {
         }
         let s: String = self.source[self.start..self.current].iter().collect();
         let v: f32 = s.parse().expect("Should be a number");
-        self.add_token(TokenType::Number, Some(Literal::Num(v)));
+        self.add_token(TokenType::Number(v));
     }
 
     fn advance(&mut self) -> char {
@@ -196,6 +195,6 @@ impl Scanner {
             _ => TokenType::Identifier,
         };
 
-        self.add_token(token_type, None);
+        self.add_token(token_type);
     }
 }
